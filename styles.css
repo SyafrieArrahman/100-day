@@ -345,4 +345,59 @@ details {
 summary {
   cursor:pointer
 }
+.auth-page {
+  max-width:440px;
+  min-height:100vh;
+  margin:0 auto;
+  padding:48px 20px 32px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center
+}
+.auth-brand {
+  margin-bottom:20px
+}
+.auth-brand h1 {
+  font-size:48px
+}
+.auth-form {
+  margin:0
+}
+.auth-form label:first-of-type {
+  margin-top:16px
+}
+.auth-divider {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin:18px 0;
+  color:var(--mut);
+  font-size:12px
+}
+.auth-divider::before,
+.auth-divider::after {
+  content:"";
+  height:1px;
+  flex:1;
+  background:var(--ln)
+}
+.auth-switch {
+  display:block;
+  margin:12px auto 0
+}
+.auth-guest {
+  margin-top:12px
+}
+.auth-note,
+.auth-local-note {
+  font-size:13px
+}
+.auth-bar {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  color:var(--mut);
+  font-size:12px
+}
 
