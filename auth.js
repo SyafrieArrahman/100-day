@@ -15,6 +15,10 @@
   const esc = value => String(value || '').replace(/[&<>"']/g, char => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
   })[char]);
+  const notifyAuth = () => {
+    window.onAuthChanged?.(window.authUser, window.guestMode);
+    window.renderApp?.();
+  };
 
   window.authView = () => {
     if (!window.authReady) return '<main class="auth-page"><div class="card">Loading sign-in…</div></main>';
@@ -45,12 +49,12 @@
   window.authContinueGuest = () => {
     window.guestMode = true;
     sessionStorage.setItem('h100-guest', '1');
-    window.renderApp?.();
+    notifyAuth();
   };
   window.authSignIn = () => {
     window.guestMode = false;
     sessionStorage.removeItem('h100-guest');
-    window.renderApp?.();
+    notifyAuth();
   };
   window.authSubmit = async event => {
     event.preventDefault();
@@ -73,6 +77,7 @@
       window.guestMode = false;
       sessionStorage.removeItem('h100-guest');
       window.authUser = result.data.user;
+      notifyAuth();
     }
     window.renderApp?.();
   };
@@ -98,17 +103,42 @@
   async function initialize() {
     if (configured() && window.supabase?.createClient) {
       client = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+      window.progressCloud = {
+        async load(userId) {
+          try {
+            const { data, error } = await client.from('user_progress')
+              .select('data,updated_at').eq('user_id', userId).maybeSingle();
+            return { data, error };
+          } catch (error) { return { error }; }
+        },
+        async save(userId, progress) {
+          try {
+            const { error } = await client.from('user_progress').upsert({
+              user_id: userId,
+              data: progress,
+              updated_at: new Date().toISOString()
+            }, { onConflict: 'user_id' });
+            return { error };
+          } catch (error) { return { error }; }
+        },
+        async remove(userId) {
+          try {
+            const { error } = await client.from('user_progress').delete().eq('user_id', userId);
+            return { error };
+          } catch (error) { return { error }; }
+        }
+      };
       const { data } = await client.auth.getSession();
       window.authUser = data.session?.user || null;
       client.auth.onAuthStateChange((_event, session) => {
         window.authUser = session?.user || null;
         window.guestMode = false;
         sessionStorage.removeItem('h100-guest');
-        window.renderApp?.();
+        notifyAuth();
       });
     }
     window.authReady = true;
-    window.renderApp?.();
+    notifyAuth();
   }
 
   initialize();
